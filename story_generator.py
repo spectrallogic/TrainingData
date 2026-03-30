@@ -331,18 +331,15 @@ def show_stats(output_path: str):
         next(reader, None)  # skip header
         rows = list(reader)
     total = len(rows)
-    ideas = set()
     total_chars = 0
     for row in rows:
-        if len(row) >= 4:
-            ideas.add(row[2])
-            total_chars += len(row[3])
+        if len(row) >= 2:
+            total_chars += len(row[1])
     size_mb = p.stat().st_size / (1024 * 1024)
     print(f"\n  {'=' * 55}")
     print(f"  MASTER FILE STATS: {output_path}")
     print(f"  {'=' * 55}")
     print(f"  Total stories:       {total:,}")
-    print(f"  Unique story ideas:  {len(ideas):,}")
     print(f"  Total characters:    {total_chars:,}")
     print(f"  File size:           {size_mb:.2f} MB")
     print(f"  {'=' * 55}\n")
@@ -359,7 +356,7 @@ def run_generation(llm, story_idea: str, num_stories: int, output_path: str,
 
         # Write header only if creating a new file
         if not file_exists:
-            writer.writerow(["story_number", "seed_words", "story_idea", "story_text"])
+            writer.writerow(["story_number", "story_text"])
 
         for i in range(num_stories):
             global_num = start_num + i
@@ -374,7 +371,7 @@ def run_generation(llm, story_idea: str, num_stories: int, output_path: str,
             elapsed = time.time() - t0
             print(f"            Done ({elapsed:.1f}s, {len(story_text)} chars)")
 
-            writer.writerow([global_num, " | ".join(words), story_idea, story_text])
+            writer.writerow([global_num, story_text])
             f.flush()   # flush after each story so nothing is lost on crash
 
     final_num = start_num + num_stories - 1
@@ -467,7 +464,8 @@ def main():
     # -----------------------------------------------------------------------
     if args.setup:
         download_model()
-        print("\nSetup complete! Now run:  python story_generator.py --model ./models/<filename>.gguf")
+        print("\nSetup complete! Now run:  python story_generator.py")
+        print("(The model in ./models/ will be detected automatically.)")
         return
 
     # -----------------------------------------------------------------------
